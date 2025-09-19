@@ -1,0 +1,19 @@
+#?options(future.globals.maxSize = 8000 * 1024^2)
+#?gc()
+
+## Pre-processing
+# Create SCT assay
+object = dataList[["gex_f"]]
+object = SCTransform(object, verbose = FALSE) 
+DefaultAssay(object) = 'SCT'
+
+#clustering
+object = RunPCA(object, verbose = FALSE)
+ElbowPlot(object, ndims = 50)
+object = FindNeighbors(object, dims = 1:40)
+object = FindClusters(object, resolution = 0.5)
+object = RunUMAP(object, dims = 1:40)
+EPICAD[["gex_f"]] = object
+
+#?DimPlot(dataList[["pca"]], label = T)
+VlnPlot(object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), pt.size = 0)
