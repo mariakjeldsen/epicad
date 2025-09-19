@@ -1,0 +1,34 @@
+## R Markdown
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(Seurat)
+library(patchwork)
+library(ggplot2)
+library(pheatmap)
+```
+
+## 1.0 Imput data
+```{r}
+# Define file paths
+gex_a = "/maps/projects/epicad-AUDIT/data/EPICAD_gex/New_Objects/gex_a_filtered_velocity_symbol.rds"
+gex_b = "/maps/projects/epicad-AUDIT/data/EPICAD_gex/New_Objects/gex_b_filtered_velocity_symbol.rds"
+gex_c = "/maps/projects/epicad-AUDIT/data/EPICAD_gex/New_Objects/gex_c_filtered_velocity_symbol.rds"
+gex_d = "/maps/projects/epicad-AUDIT/data/EPICAD_gex/New_Objects/gex_d_filtered_velocity_symbol.rds"
+gex_e = "/maps/projects/epicad-AUDIT/data/EPICAD_gex/New_Objects/gex_e_filtered_velocity_symbol.rds"
+gex_f = "/maps/projects/epicad-AUDIT/data/EPICAD_gex/New_Objects/gex_f_filtered_velocity_symbol.rds"
+
+# Put the file paths into a named character vector
+filepaths = c(
+  gex_a = gex_a,
+  gex_b = gex_b,
+  gex_c = gex_c,
+  gex_d = gex_d,
+  gex_e = gex_e,
+  gex_f = gex_f)
+
+# Read in each .rds file and store in a named list
+EPICAD = lapply(filepaths, readRDS)
+
+# Check that each is a Seurat object
+sapply(EPICAD, class)
