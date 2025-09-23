@@ -8,7 +8,7 @@ library(ggplot2)
 library(pheatmap)
 ```
 
-## 1.0 Imput data
+# 1.0 Import data
 ```{r}
 # Define file paths
 gex_a = "/maps/projects/epicad-AUDIT/data/EPICAD_gex/New_Objects/gex_a_filtered_velocity_symbol.rds"
@@ -28,7 +28,7 @@ filepaths = c(
   gex_f = gex_f)
 
 # Read in each .rds file and store in a named list
-EPICAD = lapply(filepaths, readRDS)
+dataList = lapply(filepaths, readRDS)
 
 # Check that each is a Seurat object
-sapply(EPICAD, class)
+sapply(dataList, class)
