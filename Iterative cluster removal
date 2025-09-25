@@ -58,3 +58,15 @@ dataList[["gex_f"]] = object
 
 DimPlot(object, label = T, reduction = "umap") + NoLegend()
 ```
+
+## Marker genes
+```{r}
+FeaturePlot(object, features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+
+```
+
+# Featureplot
+```{r}
+VlnPlot(object, features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+
+```
