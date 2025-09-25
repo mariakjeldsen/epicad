@@ -11,6 +11,11 @@ DefaultAssay(object) = 'RNA'
 object = NormalizeData(object)
 ```
 
+## Nuclei count
+```{r}
+table(object$reaction_id)
+```
+
 ## Variable features
 ```{r}
 #find variable features: selects the genes that show the highest biological variance across cells - "vst" is the variance-stabilizing selection method
