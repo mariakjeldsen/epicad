@@ -1,77 +1,212 @@
 # Clustering
-## Normalization
+## SCT normalization + clustering
 ```{r}
-#pull the gex_f object out
-object = dataList[["gex_f"]]
+process_object = function(object) {
+  object = SCTransform(object, verbose = FALSE)   # replaces NormalizeData + ScaleData
+  object = RunPCA(object, verbose = FALSE)
+  return(object)
+}
 
-#Setting the active assay to "RNA" --> Seurat functions operate on the active assay by default
-DefaultAssay(object) = 'RNA'
-
-#Normalize data: takes raw counts and converts them into normalized expression values - divides counts by the cell's total counts -> multiplies by scale.factor (default 10000) --> applies log1p
-object = NormalizeData(object)
+# Apply to all objects in the list
+dataList = lapply(dataList, process_object)
 ```
 
-## Nuclei count
+## ElbowPlot
 ```{r}
-table(object$reaction_id)
-```
-
-## Variable features
-```{r}
-#find variable features: selects the genes that show the highest biological variance across cells - "vst" is the variance-stabilizing selection method
-object = FindVariableFeatures(object, selection.method = "vst")
-
-#shows variable genes
-VariableFeaturePlot(object)     
-Top10 = head(VariableFeatures(object), 10)
-LabelPoints(plot = VariableFeaturePlot(object), points = Top10, repel = TRUE)
-```
-
-## PCA and ElbowPlot
-```{r}
-#scale: z-score (mean=0, sd=1) scales each gene across cells ((x-mean)/sd) + limits scaling to the variable features
-object = ScaleData(object, features = VariableFeatures(object))
-
-#computes principal components (PCs) using the scale.data from the active assay
-object = RunPCA(object, verbose = FALSE)
-
 #ElbowPlot: plots standard deviations (or variance explained) of the first 50 PCs --> used to visually choose how many PCs capture most variation (at the elbow, the variance drops) --> use the top PCs to build a neighbor graph and cluster cells
-Elbow = ElbowPlot(object, ndims = 50)
+Elbow_a = ElbowPlot(dataList[["gex_a"]], ndims = 50)
+Elbow_b = ElbowPlot(dataList[["gex_b"]], ndims = 50)
+Elbow_c = ElbowPlot(dataList[["gex_c"]], ndims = 50)
+Elbow_d = ElbowPlot(dataList[["gex_d"]], ndims = 50)
+Elbow_e = ElbowPlot(dataList[["gex_e"]], ndims = 50)
+Elbow_f = ElbowPlot(dataList[["gex_f"]], ndims = 50)
 
-# Add one red point at PC 20
-Elbow + geom_point(data = data.frame(
+# Add one red point at PC 
+Elbow_a + geom_point(data = data.frame(
     PC = 20,
-    StDev = object[["pca"]]@stdev[20]),
+    StDev = dataList[["gex_a"]][["pca"]]@stdev[20]),
   aes(x = PC, y = StDev),
   color = "red",
   size = 2)
+
+ggsave("epicad_plots/gex_a_elbow.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_a_elbow.png", scale = 1, bg = "white")
+
+
+Elbow_b + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_b"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+
+ggsave("epicad_plots/gex_b_elbow.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_b_elbow.png", scale = 1, bg = "white")
+
+
+Elbow_c + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_c"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+
+ggsave("epicad_plots/gex_c_elbow.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_c_elbow.png", scale = 1, bg = "white")
+
+
+Elbow_d + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_d"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+
+ggsave("epicad_plots/gex_d_elbow.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_d_elbow.png", scale = 1, bg = "white")
+
+
+Elbow_e + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_e"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+
+ggsave("epicad_plots/gex_e_elbow.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_e_elbow.png", scale = 1, bg = "white")
+
+
+Elbow_f + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_f"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+
+ggsave("epicad_plots/gex_f_elbow.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_f_elbow.png", scale = 1, bg = "white")
 ```
 
-## UMAP
+## Clustering + UMAP
 ```{r}
-#Constructs a shared nearest neighbor (SNN) using the chosen PCs 1:15
-object = FindNeighbors(object, dims = 1:20)
-
+process_object_clustering = function(object, dims.use = 1:20) {
+  object = FindNeighbors(object, dims = dims.use)
+  object = FindClusters(object, resolution = 0.5)
+  object = RunUMAP(object, dims = dims.use)
+  return(object)
+}
+#Constructs a shared nearest neighbor (SNN) using the chosen PCs 1:20
 #run graph-based clustering (lower=fewer, larger clusters; higher=more, smaller clusters)
-object = FindClusters(object, resolution = 0.5)
 
-#UMAP using the specified PCs - it is only visualization (not the clustering it self)
-object = RunUMAP(object, dims = 1:20)
-
-#save back into list
-dataList[["gex_f"]] = object
-
-DimPlot(object, label = T, reduction = "umap") + NoLegend()
+# Apply after deciding dims to use
+dataList = lapply(dataList, process_object_clustering, dims.use = 1:20)
 ```
+
+## UMAPs
+```{r}
+DimPlot(dataList[["gex_a"]], label = T, reduction = "umap") + NoLegend()
+ggsave("epicad_plots/gex_a_umap.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_a_umap.png", scale = 1, bg = "white")
+
+
+DimPlot(dataList[["gex_b"]], label = T, reduction = "umap") + NoLegend()
+ggsave("epicad_plots/gex_b_umap.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_b_umap.png", scale = 1, bg = "white")
+
+
+DimPlot(dataList[["gex_c"]], label = T, reduction = "umap") + NoLegend()
+ggsave("epicad_plots/gex_c_umap.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_c_umap.png", scale = 1, bg = "white")
+
+
+DimPlot(dataList[["gex_d"]], label = T, reduction = "umap") + NoLegend()
+ggsave("epicad_plots/gex_d_umap.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_d_umap.png", scale = 1, bg = "white")
+
+
+DimPlot(dataList[["gex_e"]], label = T, reduction = "umap") + NoLegend()
+ggsave("epicad_plots/gex_e_umap.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_e_umap.png", scale = 1, bg = "white")
+
+
+DimPlot(dataList[["gex_f"]], label = T, reduction = "umap") + NoLegend()
+ggsave("epicad_plots/gex_f_umap.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/gex_f_umap.png", scale = 1, bg = "white")
+```
+
 
 ## Marker genes
 ```{r}
-FeaturePlot(object, features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+FeaturePlot(dataList[["gex_a"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+ggsave("epicad_plots/gex_a_markerGenes.pdf", height = 12 ,width = 10, bg = "white")
+ggsave("epicad_plots/gex_a_markerGenes.png", height = 12 ,width = 10, bg = "white")
 
+
+FeaturePlot(dataList[["gex_b"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+ggsave("epicad_plots/gex_b_markerGenes.pdf", height = 12 ,width = 10, bg = "white")
+ggsave("epicad_plots/gex_b_markerGenes.png", height = 12 ,width = 10, bg = "white")
+
+
+FeaturePlot(dataList[["gex_c"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+ggsave("epicad_plots/gex_c_markerGenes.pdf", height = 12 ,width = 10, bg = "white")
+ggsave("epicad_plots/gex_c_markerGenes.png", height = 12 ,width = 10, bg = "white")
+
+
+FeaturePlot(dataList[["gex_d"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+ggsave("epicad_plots/gex_d_markerGenes.pdf", height = 12 ,width = 10, bg = "white")
+ggsave("epicad_plots/gex_d_markerGenes.png", height = 12 ,width = 10, bg = "white")
+
+
+FeaturePlot(dataList[["gex_e"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+ggsave("epicad_plots/gex_e_markerGenes.pdf", height = 12 ,width = 10, bg = "white")
+ggsave("epicad_plots/gex_e_markerGenes.png", height = 12 ,width = 10, bg = "white")
+
+
+FeaturePlot(dataList[["gex_f"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+ggsave("epicad_plots/gex_f_markerGenes.pdf", height = 12 ,width = 10, bg = "white")
+ggsave("epicad_plots/gex_f_markerGenes.png", height = 12 ,width = 10, bg = "white")
 ```
 
-# Featureplot
+## Featureplot
 ```{r}
-VlnPlot(object, features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+VlnPlot(dataList[["gex_a"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+ggsave("epicad_plots/gex_a_featurePlot.pdf", width = 15, bg = "white")
+ggsave("epicad_plots/gex_a_featurePlot.png", width = 15, bg = "white")
 
+
+VlnPlot(dataList[["gex_b"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+ggsave("epicad_plots/gex_b_featurePlot.pdf", width = 15, bg = "white")
+ggsave("epicad_plots/gex_b_featurePlot.png", width = 15, bg = "white")
+
+
+VlnPlot(dataList[["gex_c"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+ggsave("epicad_plots/gex_c_featurePlot.pdf", width = 15, bg = "white")
+ggsave("epicad_plots/gex_c_featurePlot.png", width = 15, bg = "white")
+
+
+VlnPlot(dataList[["gex_d"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+ggsave("epicad_plots/gex_d_featurePlot.pdf", width = 15, bg = "white")
+ggsave("epicad_plots/gex_d_featurePlot.png", width = 15, bg = "white")
+
+
+VlnPlot(dataList[["gex_e"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+ggsave("epicad_plots/gex_e_featurePlot.pdf", width = 15, bg = "white")
+ggsave("epicad_plots/gex_e_featurePlot.png", width = 15, bg = "white")
+
+
+VlnPlot(dataList[["gex_f"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+ggsave("epicad_plots/gex_f_featurePlot.pdf", width = 15, bg = "white")
+ggsave("epicad_plots/gex_f_featurePlot.png", width = 15, bg = "white")
+```
+
+
+## Nuclei count
+```{r}
+table(dataList[["gex_a"]]$reaction_id)
+table(dataList[["gex_b"]]$reaction_id)
+table(dataList[["gex_c"]]$reaction_id)
+table(dataList[["gex_d"]]$reaction_id)
+table(dataList[["gex_e"]]$reaction_id)
+table(dataList[["gex_f"]]$reaction_id)
 ```
