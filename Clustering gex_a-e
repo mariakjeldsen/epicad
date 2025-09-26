@@ -1,0 +1,123 @@
+#gex_a-e
+
+## Normalization + clustering pipelines
+```{r}
+process_object = function(object) {
+  # Set active assay
+  DefaultAssay(object) = "RNA"
+  
+  # Normalize
+  object = NormalizeData(object)
+  
+  # Variable features
+  object = FindVariableFeatures(object, selection.method = "vst")
+  
+  # Scaling & PCA
+  object = ScaleData(object, features = VariableFeatures(object))
+  object = RunPCA(object, verbose = FALSE)
+  
+  # Clustering
+  object = FindNeighbors(object, dims = 1:15)
+  object = FindClusters(object, resolution = 0.5)
+  object = RunUMAP(object, dims = 1:15)
+  
+  return(object)
+  }
+
+# Apply to all objects in the list
+dataList = lapply(dataList, process_object)
+```
+
+## Nuclei count
+```{r}
+table(dataList[["gex_a"]]$reaction_id)
+table(dataList[["gex_b"]]$reaction_id)
+table(dataList[["gex_c"]]$reaction_id)
+table(dataList[["gex_d"]]$reaction_id)
+table(dataList[["gex_e"]]$reaction_id)
+```
+
+
+## Elbows gex_a-e
+```{r}
+Elbow_a = ElbowPlot(dataList[["gex_a"]], ndims = 50)
+Elbow_b = ElbowPlot(dataList[["gex_b"]], ndims = 50)
+Elbow_c = ElbowPlot(dataList[["gex_c"]], ndims = 50)
+Elbow_d = ElbowPlot(dataList[["gex_d"]], ndims = 50)
+Elbow_e = ElbowPlot(dataList[["gex_e"]], ndims = 50)
+
+# Add one red point at PC 
+Elbow_a + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_a"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+
+Elbow_b + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_b"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+
+Elbow_c + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_c"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+
+Elbow_d + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_d"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+
+Elbow_e + geom_point(data = data.frame(
+    PC = 20,
+    StDev = dataList[["gex_e"]][["pca"]]@stdev[20]),
+  aes(x = PC, y = StDev),
+  color = "red",
+  size = 2)
+```
+
+## UMAPs
+```{r}
+DimPlot(dataList[["gex_a"]], label = T, reduction = "umap") + NoLegend()
+
+DimPlot(dataList[["gex_b"]], label = T, reduction = "umap") + NoLegend()
+
+DimPlot(dataList[["gex_c"]], label = T, reduction = "umap") + NoLegend()
+
+DimPlot(dataList[["gex_d"]], label = T, reduction = "umap") + NoLegend()
+
+DimPlot(dataList[["gex_e"]], label = T, reduction = "umap") + NoLegend()
+```
+
+## Marker genes gex_a-e
+```{r}
+FeaturePlot(dataList[["gex_a"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+
+FeaturePlot(dataList[["gex_b"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+
+FeaturePlot(dataList[["gex_c"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+
+FeaturePlot(dataList[["gex_d"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+
+FeaturePlot(dataList[["gex_e"]], features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = T)
+```
+
+## Featureplot gex_a-e
+```{r}
+VlnPlot(dataList[["gex_a"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+
+VlnPlot(dataList[["gex_b"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+
+VlnPlot(dataList[["gex_c"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+
+VlnPlot(dataList[["gex_d"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+
+VlnPlot(dataList[["gex_e"]], features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+```
