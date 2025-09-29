@@ -1,0 +1,26 @@
+# Embed metadata in integrated object
+
+```{r}
+# Extract original meta.data with cell names as rownames
+meta_orig = integrated@meta.data
+
+# load new metadata
+metadata = read_excel("/maps/projects/scheele/data/Maria/250806_epicad_metadata.xlsx")
+
+# Add cell names as a column for joining purposes
+meta_orig$cell_barcode = rownames(meta_orig)
+
+# Perform join by 'sample_id' but keep cell_barcode for rownames
+meta1 = meta_orig %>%
+  left_join(metadata, by = "sample_id")
+# keeps all cells from meta_orig --> adds metadata columns where sample_id matches
+
+# Re-assign rownames as cell barcodes
+rownames(meta1) = meta1$cell_barcode
+meta1$cell_barcode = NULL
+
+# Assign corrected meta back to Seurat object
+integrated@meta.data = meta1
+
+backup = integrated
+```
