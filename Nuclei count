@@ -1,0 +1,13 @@
+# Nuclei count per depot and id_condition
+```{r}
+table_counts = t(table(meta1$depot, meta1$id))
+
+# get mapping of ID -> condition
+id_condition = unique(meta1[, c("id", "condition")])
+# reorder to match rownames of table_counts
+id_condition = id_condition[match(rownames(table_counts), id_condition$id), ]
+# update rownames: "id_condition"
+rownames(table_counts) = paste0(id_condition$id, "_", id_condition$condition)
+
+print(table_counts)
+```
