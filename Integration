@@ -55,7 +55,7 @@ ggsave("epicad_plots/inte_UMAP.pdf", scale = 1, bg = "white")
 ggsave("epicad_plots/inte_UMAP.png", scale = 1, bg = "white")
 ```
 
-## kk
+## UMAP - coloured by reaction
 ```{r}
 # check that orig.ident are integrated and not separated
 Idents(integrated) = "orig.ident"
@@ -64,4 +64,30 @@ print(integrated)
 
 ggsave("epicad_plots/orig.ident_UMAP.pdf", scale = 1, bg = "white")
 ggsave("epicad_plots/orig.ident_UMAP.png", scale = 1, bg = "white")
+```
+
+## UMAP - coloured by depot
+```{r}
+Idents(integrated) = "depot"
+DimPlot(integrated, reduction = "umap", label = FALSE)
+print(integrated)
+
+ggsave("epicad_plots/depot_UMAP.pdf", scale = 1, bg = "white")
+ggsave("epicad_plots/depot_UMAP.png", scale = 1, bg = "white")
+```
+
+## Marker genes
+```{r}
+FeaturePlot(integrated, features = c("PTPRC", "PECAM1", "ADIPOQ", "PDGFRA", "ACTA2"), label = F)
+ggsave("epicad_plots/integrated_markerGenes.pdf", height = 12 ,width = 10, bg = "white")
+ggsave("epicad_plots/integrated_markerGenes.png", height = 12 ,width = 10, bg = "white")
+```
+
+## Feature plot
+```{r}
+Idents(integrated) = "seurat_clusters"
+
+VlnPlot(integrated, features = c("nFeature_RNA", "mitochondrial_prop", "nCount_RNA"), pt.size = 0, flip = TRUE, ncol = 3)
+ggsave("epicad_plots/integrated_featurePlot.pdf", width = 20, bg = "white")
+ggsave("epicad_plots/integrated_featurePlot.png", width = 20, bg = "white")
 ```
