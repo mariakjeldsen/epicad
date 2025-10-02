@@ -1,0 +1,19 @@
+# DE analysis
+## Cluster markers
+```{r}
+DefaultAssay(harmony_integrated) = "SCT"
+
+Idents(harmony_integrated) = "seurat_clusters"
+
+harmony_integrated = PrepSCTFindMarkers(harmony_integrated)
+
+cluster_markers = FindAllMarkers(harmony_integrated,
+                                 only.pos = F,
+                                 min.pct = 0.25,    # expressed in at least 25% of cells
+                                 logfc.threshold = 0.25) # min log2 fold change
+
+top10 = cluster_markers %>%
+  group_by(cluster) %>%
+  slice_max(order_by = avg_log2FC, n = 10)
+print(top10)
+```
